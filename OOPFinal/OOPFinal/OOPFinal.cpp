@@ -1,13 +1,16 @@
 ﻿#include <iostream>
 #include <string>
 #include <random>
+#include <ranges>
 #include "customcontainer.h"
+
+//В этой версии проекта я применяю singletone, iterator, лямбда-функцию, std::ranges, переопределение операторов, паттерн проектирования "Абстрактная фабрика";
 
 int getRandomInt()
 {
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist6(0, 1023); // distribution in range [1, 100]
+    std::uniform_int_distribution<std::mt19937::result_type> dist6(0, 1023); // [1, 100]
     return dist6(rng);
 }
 
@@ -25,6 +28,14 @@ public:
         this->customerCount = 0;
         this->name = name;
         this->hasSocialMedia = hasSocialMedia;
+    }
+
+    void ListItems(const std::vector<std::string>& items)
+    {
+        std::cout << "Items in store:\n";
+        std::ranges::for_each(items, [](const std::string& item) {
+            std::cout << "- " << item << "\n";
+            });
     }
 
     virtual void Open()
@@ -121,12 +132,16 @@ public:
     {
         Store::Open();
         soldItemCount += (1 + getRandomInt() % 50);
+        if (hasOnlineStore)
+            this->customerCount += (50 + getRandomInt() % 51);
+        else
+            this->customerCount += (1 + getRandomInt() % 50);
     }
 
     void ShowStats()
     {
         Store::ShowStats();
-        std::cout << "\nSold Item Count: " << soldItemCount;
+        std::cout << "\nSold Item Count: " << soldItemCount << "\nOnline Store: " << ((hasOnlineStore) ? "Yes" : "No");;
     }
 };
 
@@ -192,18 +207,25 @@ int main()
 {
     setlocale(LC_ALL, "Russian");
     ElectronicsStoreFactory electronicsFactory;
-    Store* electronicsStore = electronicsFactory.createStore("Электроника", true);
+    Store* electronicsStore = electronicsFactory.createStore("DNS", true);
     VladivostokCity::getInstance().registerStore(*electronicsStore);
     electronicsStore->Open();
     electronicsStore->ShowStats();
-    std::cout << "\n\n";
+    std::cout << "\n";
+    std::vector<std::string> electronicsItems = { "TV", "Cameras", "Headphones" };
+    electronicsStore->ListItems(electronicsItems);
+    std::cout << "\n";
+
 
     BookStoreFactory bookStoreFactory;
-    Store* bookStore = bookStoreFactory.createStore("Читай-город", true);
+    Store* bookStore = bookStoreFactory.createStore("Labyrynth", true);
     VladivostokCity::getInstance().registerStore(*bookStore);
     bookStore->Open();
     bookStore->ShowStats();
-    std::cout << "\n\n";
+    std::cout << "\n";
+    std::vector<std::string> bookStoreItems = { "Novels", "Manga", "Comics" };
+    bookStore->ListItems(bookStoreItems);
+    std::cout << "\n";
 
     return 0;
 }
